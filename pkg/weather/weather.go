@@ -50,3 +50,32 @@ func GetWeather(city string) (*WeatherResponse, error) {
 
     return &weatherResponse, nil
 }
+
+func GetWeatherByCoordinates(lat, lon float64) (*WeatherResponse, error) {
+    apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
+    if apiKey == "" {
+        return nil, fmt.Errorf("OPENWEATHERMAP_API_KEY не указан в файле .env")
+    }
+
+    url := fmt.Sprintf("%s?lat=%f&lon=%f&appid=%s&units=metric", weatherAPIURL, lat, lon, apiKey)
+    log.Printf("Запрос данных о погоде с URL: %s", url)
+    
+    resp, err := http.Get(url)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return nil, err
+    }
+
+    var weatherResponse WeatherResponse
+    err = json.Unmarshal(body, &weatherResponse)
+    if err != nil {
+        return nil, err
+    }
+
+    return &weatherResponse, nil
+}
